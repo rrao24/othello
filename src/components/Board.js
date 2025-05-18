@@ -1,11 +1,14 @@
 import React from 'react';
-import { BOARD_SIZE, TOKEN_TYPE } from '../globals/constants';
+import { BOARD_SIZE, TOKEN_TYPE, PLAYERS, INITIAL_SCORE } from '../globals/constants';
 import Tile from './Tile';
 
 class Board extends React.Component {
   constructor(props) {
     super(props);
     this.boardSize = BOARD_SIZE;
+
+    this.currentPlayer = PLAYERS.RED;
+
     this.board = [];
 
     for (let row = 0; row < this.boardSize; row++) {
@@ -24,7 +27,10 @@ class Board extends React.Component {
     this.board[4][4] = TOKEN_TYPE.RED;
 
     this.state = {
-      board: this.board
+      board: this.board,
+      currentPlayer: this.currentPlayer,
+      redScore: INITIAL_SCORE,
+      blueScore: INITIAL_SCORE
     };
   }
 
@@ -41,6 +47,11 @@ class Board extends React.Component {
         <div className="Board">
           <div className="Grid">
             {tiles}
+          </div>
+          <div className="CurrentPlayer">Current Player - {this.state.currentPlayer}</div>
+          <div className="Scoreboard">
+            <div className="Score">Red Score - {this.state.redScore}</div>
+            <div className="Score">Blue Score - {this.state.blueScore}</div>
           </div>
         </div>
       );

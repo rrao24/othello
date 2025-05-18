@@ -18,3 +18,21 @@
   text-align: center;
   background-color: #eeeeee;
 }
+
+.CurrentPlayer
+{
+  margin: 4px;
+}
+
+.Scoreboard
+{
+  margin: 4px;
+}
+
+.Score
+{
+  display: inline-block;
+  border: 1px solid black;
+  padding: 4px;
+  margin-right: 4px;
+}
