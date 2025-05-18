@@ -6,6 +6,7 @@ import Board from './components/Board'
 function App() {
   return (
     <div className="App">
+      <h1 className="AppHeader">🟢⚫ Othello 🟢⚫</h1>
       <Board />
     </div>
   );

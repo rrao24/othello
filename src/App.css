@@ -1,38 +1,74 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
 .App {
-  width: 256px;
-  margin: auto;
+  width: fit-content;
+  margin: 20px auto;
   text-align: center;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.AppHeader {
+  font-size: 32px;
+  font-weight: bold;
+  color: #2d3436;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #b2bec3;
+  padding-bottom: 8px;
 }
 
 .Grid {
   display: grid;
-  grid-gap: 0;
-  grid-template-rows: repeat(8, 32px);
-  grid-template-columns: repeat(8, 32px);
+  grid-template-rows: repeat(8, 40px);
+  grid-template-columns: repeat(8, 40px);
+  gap: 2px;
+  margin-bottom: 16px;
 }
 
 .Tile {
-  margin: -1px -1px 0px 0px;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  border: 1px solid black;
-  text-align: center;
-  background-color: #eeeeee;
+  border: none;
+  background-color: #dfe6e9;
+  border-radius: 6px;
+  font-size: 24px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.CurrentPlayer
-{
-  margin: 4px;
+.Tile:hover {
+  background-color: #b2bec3;
 }
 
-.Scoreboard
-{
-  margin: 4px;
+.CurrentPlayer {
+  margin: 12px 0;
+  font-weight: bold;
+  font-size: 18px;
+  color: #2d3436;
 }
 
-.Score
-{
+.Scoreboard {
+  margin: 12px 0;
+}
+
+.Score {
   display: inline-block;
-  border: 1px solid black;
-  padding: 4px;
-  margin-right: 4px;
+  background-color: #dfe6e9;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 0 6px;
+  font-weight: 500;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+h3 {
+  margin-top: 16px;
+  color: #0984e3;
 }
