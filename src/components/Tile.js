@@ -1,19 +1,16 @@
 import React from 'react';
 import Token from './Token';
 
+
+// Utilized AI Tools to determine that the onClick function needed to be defined
+// At the button level, not at the Token level
 class Tile extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.onTileClick = props.onTileClick;
-
-    this.state = {tokenType: props.tokenType};
-  }
-
   render() {
-    return <button className="Tile">
-      <Token tokenType={this.state.tokenType} onClick={this.onTileClick} />
-    </button>
+    return (
+      <button className="Tile" onClick={this.props.onTileClick}>
+        <Token tokenType={this.props.tokenType} />
+      </button>
+    );
   }
 }
 

@@ -6,9 +6,17 @@ class Board extends React.Component {
   constructor(props) {
     super(props);
     this.boardSize = BOARD_SIZE;
-    this.currentPlayer = PLAYERS.RED;
 
-    this.board = [];
+    this.state = {
+      board: this.createInitialBoard(),
+      currentPlayer: PLAYERS.RED,
+      redScore: INITIAL_SCORE,
+      blueScore: INITIAL_SCORE
+    };
+  }
+
+  createInitialBoard = () => {
+    let board = [];
 
     for (let row = 0; row < this.boardSize; row++) {
       let gameRow = [];
@@ -17,33 +25,30 @@ class Board extends React.Component {
         gameRow.push(TOKEN_TYPE.EMPTY);
       }
 
-      this.board.push(gameRow);
+      board.push(gameRow);
     }
 
-    this.board[3][3] = TOKEN_TYPE.RED;
-    this.board[3][4] = TOKEN_TYPE.BLUE;
-    this.board[4][3] = TOKEN_TYPE.BLUE;
-    this.board[4][4] = TOKEN_TYPE.RED;
+    board[3][3] = TOKEN_TYPE.RED;
+    board[3][4] = TOKEN_TYPE.BLUE;
+    board[4][3] = TOKEN_TYPE.BLUE;
+    board[4][4] = TOKEN_TYPE.RED;
 
-    this.state = {
-      board: this.board,
-      currentPlayer: this.currentPlayer,
-      redScore: INITIAL_SCORE,
-      blueScore: INITIAL_SCORE
-    };
-
-    this.handleTileClick = this.handleTileClick.bind(this);
+    return board;
   }
 
   handleTileClick = (row, col) => {
-    if (this.board[row][col] !== TOKEN_TYPE.EMPTY) {
+    // Utilized AI Tools to understand that React requires to use copies of objects
+    // In order to update state
+    const boardCopy = this.state.board.map(row => row.slice());
+
+    if (boardCopy[row][col] !== TOKEN_TYPE.EMPTY) {
       return;
     }
 
     let token;
     let nextPlayer;
 
-    if (this.currentPlayer === PLAYERS.RED) {
+    if (this.state.currentPlayer === PLAYERS.RED) {
       token = TOKEN_TYPE.RED;
       nextPlayer = PLAYERS.BLUE;
     } else {
@@ -75,12 +80,12 @@ class Board extends React.Component {
           currentCol < 0 ||
           currentRow >= this.boardSize ||
           currentCol >= this.boardSize ||
-          this.board[currentRow][currentCol] === TOKEN_TYPE.EMPTY
+          boardCopy[currentRow][currentCol] === TOKEN_TYPE.EMPTY
         ) {
           break;
         }
 
-        if (this.board[currentRow][currentCol] === token) {
+        if (boardCopy[currentRow][currentCol] === token) {
           break;
         }
 
@@ -92,7 +97,7 @@ class Board extends React.Component {
       currentCol -= direction[1];
 
       while (!(currentRow === row && currentCol === col)) {
-        this.board[currentRow][currentCol] = token;
+        boardCopy[currentRow][currentCol] = token;
 
         tilesFlipped++;
         isMoveValid = true;
@@ -103,12 +108,12 @@ class Board extends React.Component {
     }
 
     if (isMoveValid) {
-      this.board[row][col] = token;
+      boardCopy[row][col] = token;
 
       let redScore;
       let blueScore;
 
-      if (this.currentPlayer === PLAYERS.RED) {
+      if (this.state.currentPlayer === PLAYERS.RED) {
         redScore = this.state.redScore + tilesFlipped + 1;
         blueScore = this.state.blueScore - tilesFlipped;
       } else {
@@ -116,11 +121,9 @@ class Board extends React.Component {
         redScore = this.state.redScore - tilesFlipped;
       }
 
-      this.currentPlayer = nextPlayer;
-
       this.setState({
-        board: this.board,
-        currentPlayer: this.currentPlayer,
+        board: boardCopy,
+        currentPlayer: nextPlayer,
         redScore: redScore,
         blueScore: blueScore
       });
