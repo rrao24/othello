@@ -36,6 +36,66 @@ class Board extends React.Component {
     return board;
   }
 
+  // Utilized AI Tools to help write code to determine when to skip a turn
+  // And to determine when the game is over (when neither player has valid moves)
+  hasValidMove = (board, player) => {
+    let token;
+    if (player === PLAYERS.RED) {
+      token = TOKEN_TYPE.RED;
+    } else {
+      token = TOKEN_TYPE.BLUE;
+    }
+
+    for (let row = 0; row < this.boardSize; row++) {
+      for (let col = 0; col < this.boardSize; col++) {
+        if (board[row][col] === TOKEN_TYPE.EMPTY && this.isValidMove(board, row, col, token)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  isValidMove = (board, row, col, token) => {
+    let opponent;
+    if (token === TOKEN_TYPE.RED) {
+      opponent = TOKEN_TYPE.BLUE;
+    } else {
+      opponent = TOKEN_TYPE.RED;
+    }
+
+    const directions = [
+      [-1, -1], [-1, 0], [-1, 1],
+      [0, -1],         [0, 1],
+      [1, -1], [1, 0], [1, 1]
+    ];
+
+    for (const [dx, dy] of directions) {
+      let r = row + dx;
+      let c = col + dy;
+      let foundOpponent = false;
+
+      while (
+        r >= 0 && c >= 0 &&
+        r < this.boardSize && c < this.boardSize
+      ) {
+        if (board[r][c] === opponent) {
+          foundOpponent = true;
+        } else if (board[r][c] === token && foundOpponent) {
+          return true; // Valid move
+        } else {
+          break;
+        }
+
+        r += dx;
+        c += dy;
+      }
+    }
+
+    return false;
+  }
+
   handleTileClick = (row, col) => {
     // Utilized AI Tools to understand that React requires to use copies of objects
     // In order to update state
@@ -118,6 +178,17 @@ class Board extends React.Component {
       } else {
         blueScore = this.state.blueScore + tilesFlipped + 1;
         redScore = this.state.redScore - tilesFlipped;
+      }
+
+      let updatedCurrentPlayer = nextPlayer;
+
+      if (!this.hasValidMove(boardCopy, nextPlayer)) {
+        if (this.hasValidMove(boardCopy, this.state.currentPlayer)) {
+          updatedCurrentPlayer = this.state.currentPlayer;
+          alert(`${nextPlayer} has no valid moves. Turn skipped.`);
+        } else {
+          alert("No valid moves for either player. Game over!");
+        }
       }
 
       this.setState({
