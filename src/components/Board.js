@@ -1,14 +1,24 @@
 import React from 'react';
-import { BOARD_SIZE, PLAYERS } from '../globals/constants';
 import Tile from './Tile';
 import GameEngine from '../engine/GameEngine';
+import classicConfig from '../config/classic';
+import { loadConfig } from '../config/loadConfig';
+
+export const PLAYERS = {
+  "RED": "RED",
+  "BLUE": "BLUE"
+};
 
 class Board extends React.Component {
   constructor(props) {
     super(props);
-    this.engine = new GameEngine(BOARD_SIZE);
+
+    const gameConfig = loadConfig(classicConfig);
+    this.engine = new GameEngine(gameConfig);
+
     this.state = {
-      engineState: this.engine.getState()
+      engineState: this.engine.getState(),
+      gameConfig
     };
   }
 
@@ -20,7 +30,8 @@ class Board extends React.Component {
   };
 
   resetGame = () => {
-    this.engine.reset();
+    const gameConfig = loadConfig(classicConfig);
+    this.engine = new GameEngine(gameConfig);
     this.setState({ engineState: this.engine.getState() });
   };
 
@@ -28,8 +39,10 @@ class Board extends React.Component {
     const { board, currentPlayer, redScore, blueScore, gameOver, winner } = this.state.engineState;
     const tiles = [];
 
-    for (let row = 0; row < BOARD_SIZE; row++) {
-      for (let col = 0; col < BOARD_SIZE; col++) {
+    const board_size = board.length;
+
+    for (let row = 0; row < board_size; row++) {
+      for (let col = 0; col < board_size; col++) {
         tiles.push(
           <Tile
             key={`${row}-${col}`}

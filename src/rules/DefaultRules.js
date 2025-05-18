@@ -1,4 +1,5 @@
-import { TOKEN_TYPE, DIRECTIONS } from '../globals/constants';
+import { DIRECTIONS } from './Directions';
+import { TOKEN_TYPE } from '../globals/TokenTypes.js';
 
 class DefaultRules {
   constructor(boardSize) {

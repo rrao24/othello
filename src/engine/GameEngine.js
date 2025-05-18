@@ -1,19 +1,32 @@
 // src/engine/GameEngine.js
-import { PLAYERS, TOKEN_TYPE, INITIAL_SCORE } from '../globals/constants';
+import { TOKEN_TYPE } from '../globals/TokenTypes';
 import DefaultRules from '../rules/DefaultRules';
 
+const PLAYERS = {
+  "RED": "RED",
+  "BLUE": "BLUE"
+};
+
 class GameEngine {
-  constructor(boardSize, rules = null) {
-    this.boardSize = boardSize;
-    this.rules = rules || new DefaultRules(boardSize);
-    this.reset();
+  constructor(config) {
+    this.boardSize = config.boardSize;
+    this.rules = config.rules;
+    this.initialScore = config.initialScore;
+    this.reset(config.startingPositions);
   }
 
-  reset() {
-    this.board = this.rules.getInitialBoard();
+  reset(startingPositions) {
+    this.board = Array.from({ length: this.boardSize }, () =>
+      Array(this.boardSize).fill(TOKEN_TYPE.EMPTY)
+    );
+
+    for (const { row, col, token } of startingPositions) {
+      this.board[row][col] = token;
+    }
+
     this.currentPlayer = PLAYERS.RED;
-    this.redScore = INITIAL_SCORE;
-    this.blueScore = INITIAL_SCORE;
+    this.redScore = this.initialScore;
+    this.blueScore = this.initialScore;
     this.gameOver = false;
     this.winner = null;
   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TOKEN_TYPE } from '../globals/constants';
+import { TOKEN_TYPE } from '../globals/TokenTypes';
 
 class Token extends React.Component {
   render() {
