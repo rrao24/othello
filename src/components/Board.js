@@ -1,5 +1,5 @@
 import React from 'react';
-import Tile from './Tile';
+import TileComponent from './TileComponent';
 import GameEngine from '../engine/GameEngine';
 import classicConfig from '../config/classic';
 import { loadConfig } from '../config/loadConfig';
@@ -39,9 +39,9 @@ class Board extends React.Component {
     for (let row = 0; row < board_size; row++) {
       for (let col = 0; col < board_size; col++) {
         tiles.push(
-          <Tile
+          <TileComponent
             key={`${row}-${col}`}
-            tokenType={board[row][col]}
+            tile={board[row][col]}
             players={players}
             onTileClick={() => this.handleTileClick(row, col)}
           />

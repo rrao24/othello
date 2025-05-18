@@ -1,4 +1,5 @@
 import { TOKEN_TYPE } from '../globals/TokenTypes';
+import Tile from '../models/Tile';
 
 class GameEngine {
   constructor(config) {
@@ -11,12 +12,12 @@ class GameEngine {
   }
 
   reset(startingPositions) {
-    this.board = Array.from({ length: this.boardSize }, () =>
-      Array(this.boardSize).fill(TOKEN_TYPE.EMPTY)
+    this.board = Array.from({ length: this.boardSize }, (_, row) =>
+      Array.from({ length: this.boardSize }, (_, col) => new Tile({ row, col }))
     );
 
     for (const { row, col, token } of startingPositions) {
-      this.board[row][col] = token;
+      this.board[row][col].placeToken(token);
     }
 
     this.currentPlayerIndex = 0;
@@ -69,11 +70,12 @@ class GameEngine {
     const playerId = this.getCurrentPlayerId();
     const token = this.getTokenForPlayer(playerId);
 
-    if (this.board[row][col] !== TOKEN_TYPE.EMPTY) return false;
+    const tile = this.board[row][col];
+    if (!tile.isEmpty()) return false;
     if (!this.rules.isValidMove(this.board, row, col, token)) return false;
 
     const tilesFlipped = this.rules.flipTiles(this.board, row, col, token);
-    this.board[row][col] = token;
+    tile.placeToken(token);
 
     this.scores = this.rules.calculateNewScores(
       this.scores,
@@ -103,7 +105,7 @@ class GameEngine {
 
   getState() {
     return {
-      board: this.board.map(row => row.slice()),
+      board: this.board,
       currentPlayerId: this.getCurrentPlayerId(),
       scores: this.scores,
       players: this.players,

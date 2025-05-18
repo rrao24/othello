@@ -6,7 +6,7 @@ class DefaultRules {
   }
 
   isValidMove(board, row, col, token) {
-    if (board[row][col] !== 0) return false;
+    if (!board[row][col].isEmpty()) return false;
 
     for (const [dx, dy] of DIRECTIONS) {
       const path = this.getFlippablePath(board, row, col, dx, dy, token);
@@ -23,11 +23,11 @@ class DefaultRules {
     let foundOpponent = false;
 
     while (r >= 0 && c >= 0 && r < this.boardSize && c < this.boardSize) {
-      const current = board[r][c];
+      const currentToken = board[r][c].token;
 
-      if (current === 0) {
+      if (currentToken === 0) {
         break;
-      } else if (current !== playerToken) {
+      } else if (currentToken !== playerToken) {
         path.push([r, c]);
         foundOpponent = true;
       } else {
@@ -41,6 +41,7 @@ class DefaultRules {
     return [];
   }
 
+
   flipTiles(board, row, col, token) {
     let tilesFlipped = 0;
 
@@ -48,13 +49,14 @@ class DefaultRules {
       const path = this.getFlippablePath(board, row, col, dx, dy, token);
 
       for (const [r, c] of path) {
-        board[r][c] = token;
+        board[r][c].placeToken(token);
         tilesFlipped++;
       }
     }
 
     return tilesFlipped;
   }
+
 
   calculateNewScores(currentScores, tilesFlipped, playerId, playerOrder) {
     const newScores = { ...currentScores };
