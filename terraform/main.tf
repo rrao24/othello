@@ -14,6 +14,14 @@ resource "aws_s3_bucket_website_configuration" "config" {
   }
 }
 
+resource "aws_s3_bucket_public_access_block" "public_access" {
+  bucket                  = aws_s3_bucket.destination_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 resource "aws_s3_bucket_ownership_controls" "ownership_controls" {
   bucket = aws_s3_bucket.destination_bucket.id
   rule {
@@ -51,8 +59,8 @@ resource "aws_cloudfront_distribution" "cdn" {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
     min_ttl                = "0"
-    default_ttl            = "500"
-    max_ttl                = "1000"
+    default_ttl            = "3600"
+    max_ttl                = "86400"
     target_origin_id       = "origin-bucket-${aws_s3_bucket.destination_bucket.id}"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
@@ -75,7 +83,7 @@ resource "aws_cloudfront_distribution" "cdn" {
     error_caching_min_ttl = 500
     error_code            = 404
     response_code         = "200"
-    response_page_path    = "/404.html"
+    response_page_path    = "/index.html"
   }
 
   viewer_certificate {
@@ -104,4 +112,12 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       }
     ]
   })
+}
+
+output "website_bucket_name" {
+  value = aws_s3_bucket.destination_bucket.bucket
+}
+
+output "cloudfront_domain_name" {
+  value = aws_cloudfront_distribution.cdn.domain_name
 }
