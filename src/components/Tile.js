@@ -5,12 +5,14 @@ class Tile extends React.Component {
   constructor(props) {
     super(props);
 
+    this.onTileClick = props.onTileClick;
+
     this.state = {tokenType: props.tokenType};
   }
 
   render() {
     return <button className="Tile">
-      <Token tokenType={this.state.tokenType} />
+      <Token tokenType={this.state.tokenType} onClick={this.onTileClick} />
     </button>
   }
 }
