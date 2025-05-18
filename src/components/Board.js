@@ -71,39 +71,38 @@ class Board extends React.Component {
     ];
 
     for (let direction of directions) {
+      // Utilized AI Tools to find a bug in the code which was causing illegal moves to be placed
+      // Needed to ensure that a "friendly" tile was at the end of the line of tiles being flipped
       let currentRow = row + direction[0];
       let currentCol = col + direction[1];
+      const path = [];
 
-      while (true) {
-        if (
-          currentRow < 0 ||
-          currentCol < 0 ||
-          currentRow >= this.boardSize ||
-          currentCol >= this.boardSize ||
-          boardCopy[currentRow][currentCol] === TOKEN_TYPE.EMPTY
-        ) {
-          break;
-        }
-
-        if (boardCopy[currentRow][currentCol] === token) {
-          break;
-        }
-
+      while (
+        currentRow >= 0 &&
+        currentCol >= 0 &&
+        currentRow < this.boardSize &&
+        currentCol < this.boardSize &&
+        boardCopy[currentRow][currentCol] !== TOKEN_TYPE.EMPTY &&
+        boardCopy[currentRow][currentCol] !== token
+      ) {
+        path.push([currentRow, currentCol]);
         currentRow += direction[0];
         currentCol += direction[1];
       }
 
-      currentRow -= direction[0];
-      currentCol -= direction[1];
-
-      while (!(currentRow === row && currentCol === col)) {
-        boardCopy[currentRow][currentCol] = token;
-
-        tilesFlipped++;
+      if (
+        currentRow >= 0 &&
+        currentCol >= 0 &&
+        currentRow < this.boardSize &&
+        currentCol < this.boardSize &&
+        boardCopy[currentRow][currentCol] === token &&
+        path.length > 0
+      ) {
+        for (const [r, c] of path) {
+          boardCopy[r][c] = token;
+          tilesFlipped++;
+        }
         isMoveValid = true;
-
-        currentRow -= direction[0];
-        currentCol -= direction[1];
       }
     }
 
