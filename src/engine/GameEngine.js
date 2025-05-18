@@ -1,9 +1,9 @@
-import { TOKEN_TYPE } from '../globals/TokenTypes';
 import Tile from '../models/Tile';
 
 class GameEngine {
   constructor(config) {
-    this.boardSize = config.boardSize;
+    this.boardRows = config.boardRows;
+    this.boardCols = config.boardCols;
     this.rules = config.rules;
     this.initialScore = config.initialScore;
     this.players = config.players;
@@ -12,8 +12,8 @@ class GameEngine {
   }
 
   reset(startingPositions) {
-    this.board = Array.from({ length: this.boardSize }, (_, row) =>
-      Array.from({ length: this.boardSize }, (_, col) => new Tile({ row, col }))
+    this.board = Array.from({ length: this.boardRows }, (_, row) =>
+      Array.from({ length: this.boardCols }, (_, col) => new Tile({ row, col }))
     );
 
     for (const { row, col, token } of startingPositions) {
@@ -42,8 +42,8 @@ class GameEngine {
 
   hasValidMove(board, playerId) {
     const token = this.getTokenForPlayer(playerId);
-    for (let row = 0; row < this.boardSize; row++) {
-      for (let col = 0; col < this.boardSize; col++) {
+    for (let row = 0; row < this.boardRows; row++) {
+      for (let col = 0; col < this.boardCols; col++) {
         if (this.rules.isValidMove(board, row, col, token)) {
           return true;
         }

@@ -2,7 +2,8 @@ import DefaultRules from '../rules/DefaultRules';
 
 export default {
   name: "Classic Othello",
-  boardSize: 8,
+  boardRows: 8,
+  boardCols: 8,
   initialScore: 2,
   players: {
     A: { name: 'Red', token: 1, symbol: '🔴' },

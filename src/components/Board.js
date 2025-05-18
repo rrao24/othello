@@ -34,10 +34,11 @@ class Board extends React.Component {
     const { board, currentPlayerId, scores, players, gameOver, winner } = this.state.engineState;
     const tiles = [];
 
-    const board_size = board.length;
+    const boardRows = board.length;
+    const boardCols = board[0].length;
 
-    for (let row = 0; row < board_size; row++) {
-      for (let col = 0; col < board_size; col++) {
+    for (let row = 0; row < boardRows; row++) {
+      for (let col = 0; col < boardCols; col++) {
         tiles.push(
           <TileComponent
             key={`${row}-${col}`}
