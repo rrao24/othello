@@ -1,11 +1,14 @@
 import React from 'react';
 import { BOARD_SIZE, TOKEN_TYPE, PLAYERS, INITIAL_SCORE, DIRECTIONS } from '../globals/constants';
 import Tile from './Tile';
+import GameEngine from '../engine/GameEngine';
 
 class Board extends React.Component {
   constructor(props) {
     super(props);
     this.boardSize = BOARD_SIZE;
+
+    this.engine = new GameEngine(this.boardSize);
 
     this.state = {
       board: this.createInitialBoard(),
@@ -38,168 +41,73 @@ class Board extends React.Component {
     return board;
   }
 
-  getTokenForPlayer = (player) => {
-    return player === PLAYERS.RED ? TOKEN_TYPE.RED : TOKEN_TYPE.BLUE;
-  };
-
-  getNextPlayer = (currentPlayer) => {
-    return currentPlayer === PLAYERS.RED ? PLAYERS.BLUE : PLAYERS.RED;
-  };
-
-  // Utilized AI Tools to help write code to determine when to skip a turn
-  // And to determine when the game is over (when neither player has valid moves)
-  hasValidMove = (board, player) => {
-    const token = this.getTokenForPlayer(player);
-    for (let row = 0; row < this.boardSize; row++) {
-      for (let col = 0; col < this.boardSize; col++) {
-        if (board[row][col] === TOKEN_TYPE.EMPTY && this.isValidMove(board, row, col, token)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  getFlippablePath = (board, row, col, dx, dy, token) => {
-    const opponent = token === TOKEN_TYPE.RED ? TOKEN_TYPE.BLUE : TOKEN_TYPE.RED;
-    const path = [];
-    let r = row + dx;
-    let c = col + dy;
-
-    while (
-      r >= 0 && c >= 0 &&
-      r < this.boardSize && c < this.boardSize
-    ) {
-      const current = board[r][c];
-
-      if (current === opponent) {
-        path.push([r, c]);
-      } else if (current === token && path.length > 0) {
-        return path;
-      } else {
-        break;
-      }
-
-      r += dx;
-      c += dy;
-    }
-
-    return [];
-  };
-
-  isValidMove = (board, row, col, token) => {
-    if (board[row][col] !== TOKEN_TYPE.EMPTY) {
-      return false;
-    }
-
-    for (const [dx, dy] of DIRECTIONS) {
-      const path = this.getFlippablePath(board, row, col, dx, dy, token);
-      if (path.length > 0) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  flipTiles = (board, row, col, token) => {
-    let tilesFlipped = 0;
-
-    for (const [dx, dy] of DIRECTIONS) {
-      const path = this.getFlippablePath(board, row, col, dx, dy, token);
-
-      for (const [r, c] of path) {
-        board[r][c] = token;
-        tilesFlipped++;
-      }
-    }
-
-    return tilesFlipped;
-  };
-
-  calculateNewScores = (tilesFlipped, player) => {
-    if (player === PLAYERS.RED) {
-      return {
-        redScore: this.state.redScore + tilesFlipped + 1,
-        blueScore: this.state.blueScore - tilesFlipped
-      };
-    } else {
-      return {
-        blueScore: this.state.blueScore + tilesFlipped + 1,
-        redScore: this.state.redScore - tilesFlipped
-      };
-    }
-  };
-
   handleTileClick = (row, col) => {
-    // Utilized AI Tools to understand that React requires to use copies of objects
-    // In order to update state
+    if (this.state.gameOver) return;
+
     const boardCopy = this.state.board.map(row => row.slice());
+    const token = this.engine.getTokenForPlayer(this.state.currentPlayer);
 
-    if (this.state.gameOver || boardCopy[row][col] !== TOKEN_TYPE.EMPTY) {
-      return;
-    }
+    if (boardCopy[row][col] !== TOKEN_TYPE.EMPTY) return;
+    if (!this.engine.isValidMove(boardCopy, row, col, token)) return;
 
-    const token = this.getTokenForPlayer(this.state.currentPlayer);
-    const nextPlayer = this.getNextPlayer(this.state.currentPlayer);
+    const tilesFlipped = this.engine.flipTiles(boardCopy, row, col, token);
+    boardCopy[row][col] = token;
 
-    let tilesFlipped = this.flipTiles(boardCopy, row, col, token);
+    const { redScore, blueScore } = this.engine.calculateNewScores(
+      this.state.redScore,
+      this.state.blueScore,
+      tilesFlipped,
+      this.state.currentPlayer
+    );
 
-    if (tilesFlipped > 0) {
-      boardCopy[row][col] = token;
+    const nextPlayer = this.engine.getNextPlayer(this.state.currentPlayer);
+    const { gameOver, skipTurn } = this.engine.checkGameOver(boardCopy, this.state.currentPlayer);
 
-      const { redScore, blueScore } = this.calculateNewScores(tilesFlipped, this.state.currentPlayer);
-
-      let tentativeNextPlayer = nextPlayer;
-
-      if (!this.hasValidMove(boardCopy, nextPlayer)) {
-        if (this.hasValidMove(boardCopy, this.state.currentPlayer)) {
-          tentativeNextPlayer = this.state.currentPlayer;
-          alert(`${nextPlayer} has no valid moves. Turn skipped.`);
-        } else {
-          // Utilized AI Tools to help write code to determine a winner
-          // And display a message
-          const winner =
-            redScore > blueScore
-              ? PLAYERS.RED
-              : blueScore > redScore
-              ? PLAYERS.BLUE
-              : 'Tie';
-
-          this.setState({
-            board: boardCopy,
-            currentPlayer: null,
-            redScore,
-            blueScore,
-            gameOver: true,
-            winner
-          });
-
-          return;
-        }
-      }
+    if (gameOver) {
+      const winner =
+        redScore > blueScore ? PLAYERS.RED :
+        blueScore > redScore ? PLAYERS.BLUE : 'Tie';
 
       this.setState({
         board: boardCopy,
-        currentPlayer: tentativeNextPlayer,
-        redScore: redScore,
-        blueScore: blueScore
+        redScore,
+        blueScore,
+        currentPlayer: null,
+        gameOver: true,
+        winner
+      });
+      return;
+    }
+
+    if (skipTurn) {
+      alert(`${nextPlayer} has no valid moves. Turn skipped.`);
+      this.setState({
+        board: boardCopy,
+        redScore,
+        blueScore,
+        currentPlayer: this.state.currentPlayer
+      });
+    } else {
+      this.setState({
+        board: boardCopy,
+        redScore,
+        blueScore,
+        currentPlayer: nextPlayer
       });
     }
   };
 
   render() {
-    let tiles = [];
+    const tiles = [];
     for (let row = 0; row < this.boardSize; row++) {
       for (let col = 0; col < this.boardSize; col++) {
-        let tile = (
+        tiles.push(
           <Tile
+            key={`${row}-${col}`}
             tokenType={this.state.board[row][col]}
             onTileClick={() => this.handleTileClick(row, col)}
           />
         );
-        tiles.push(tile);
       }
     }
 
@@ -207,7 +115,9 @@ class Board extends React.Component {
       <div className="Board">
         <div className="Grid">{tiles}</div>
         <div className="CurrentPlayer">
-          Current Player - {this.state.currentPlayer}
+          {this.state.gameOver
+            ? 'Game Over'
+            : `Current Player - ${this.state.currentPlayer}`}
         </div>
         <div className="Scoreboard">
           <div className="Score">Red Score - {this.state.redScore}</div>
