@@ -8,7 +8,7 @@ class Tile extends React.Component {
   render() {
     return (
       <button className="Tile" onClick={this.props.onTileClick}>
-        <Token tokenType={this.props.tokenType} />
+        <Token tokenType={this.props.tokenType} players={this.props.players} />
       </button>
     );
   }

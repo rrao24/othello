@@ -1,27 +1,12 @@
 import { DIRECTIONS } from './Directions';
-import { TOKEN_TYPE } from '../globals/TokenTypes.js';
 
 class DefaultRules {
   constructor(boardSize) {
     this.boardSize = boardSize;
   }
 
-  getInitialBoard() {
-    const board = Array.from({ length: this.boardSize }, () =>
-      Array(this.boardSize).fill(TOKEN_TYPE.EMPTY)
-    );
-
-    const mid = this.boardSize / 2;
-    board[mid - 1][mid - 1] = TOKEN_TYPE.RED;
-    board[mid - 1][mid] = TOKEN_TYPE.BLUE;
-    board[mid][mid - 1] = TOKEN_TYPE.BLUE;
-    board[mid][mid] = TOKEN_TYPE.RED;
-
-    return board;
-  }
-
   isValidMove(board, row, col, token) {
-    if (board[row][col] !== TOKEN_TYPE.EMPTY) return false;
+    if (board[row][col] !== 0) return false;
 
     for (const [dx, dy] of DIRECTIONS) {
       const path = this.getFlippablePath(board, row, col, dx, dy, token);
@@ -31,21 +16,22 @@ class DefaultRules {
     return false;
   }
 
-  getFlippablePath(board, row, col, dx, dy, token) {
-    const opponent = token === TOKEN_TYPE.RED ? TOKEN_TYPE.BLUE : TOKEN_TYPE.RED;
+  getFlippablePath(board, row, col, dx, dy, playerToken) {
     const path = [];
     let r = row + dx;
     let c = col + dy;
+    let foundOpponent = false;
 
     while (r >= 0 && c >= 0 && r < this.boardSize && c < this.boardSize) {
       const current = board[r][c];
 
-      if (current === opponent) {
-        path.push([r, c]);
-      } else if (current === token && path.length > 0) {
-        return path;
-      } else {
+      if (current === 0) {
         break;
+      } else if (current !== playerToken) {
+        path.push([r, c]);
+        foundOpponent = true;
+      } else {
+        return foundOpponent ? path : [];
       }
 
       r += dx;
@@ -70,19 +56,16 @@ class DefaultRules {
     return tilesFlipped;
   }
 
-  calculateNewScores(currentRed, currentBlue, tilesFlipped, player) {
-    if (player === 'RED') {
-      return {
-        redScore: currentRed + tilesFlipped + 1,
-        blueScore: currentBlue - tilesFlipped
-      };
-    } else {
-      return {
-        blueScore: currentBlue + tilesFlipped + 1,
-        redScore: currentRed - tilesFlipped
-      };
-    }
+  calculateNewScores(currentScores, tilesFlipped, playerId, playerOrder) {
+    const newScores = { ...currentScores };
+
+    const opponentId = playerOrder.find(id => id !== playerId);
+    newScores[playerId] += tilesFlipped + 1;
+    newScores[opponentId] -= tilesFlipped;
+
+    return newScores;
   }
 }
+
 
 export default DefaultRules;

@@ -1,17 +1,12 @@
-// src/engine/GameEngine.js
 import { TOKEN_TYPE } from '../globals/TokenTypes';
-import DefaultRules from '../rules/DefaultRules';
-
-const PLAYERS = {
-  "RED": "RED",
-  "BLUE": "BLUE"
-};
 
 class GameEngine {
   constructor(config) {
     this.boardSize = config.boardSize;
     this.rules = config.rules;
     this.initialScore = config.initialScore;
+    this.players = config.players;
+    this.playerOrder = Object.keys(this.players);
     this.reset(config.startingPositions);
   }
 
@@ -24,34 +19,28 @@ class GameEngine {
       this.board[row][col] = token;
     }
 
-    this.currentPlayer = PLAYERS.RED;
-    this.redScore = this.initialScore;
-    this.blueScore = this.initialScore;
+    this.currentPlayerIndex = 0;
+    this.scores = Object.fromEntries(
+      Object.entries(this.players).map(([id]) => [id, this.initialScore])
+    );
     this.gameOver = false;
     this.winner = null;
   }
 
-  getState() {
-    return {
-      board: this.board.map(row => row.slice()),
-      currentPlayer: this.currentPlayer,
-      redScore: this.redScore,
-      blueScore: this.blueScore,
-      gameOver: this.gameOver,
-      winner: this.winner
-    };
+  getCurrentPlayerId() {
+    return this.playerOrder[this.currentPlayerIndex];
   }
 
-  getTokenForPlayer(player) {
-    return player === PLAYERS.RED ? TOKEN_TYPE.RED : TOKEN_TYPE.BLUE;
+  getTokenForPlayer(playerId) {
+    return this.players[playerId].token;
   }
 
-  getNextPlayer(player) {
-    return player === PLAYERS.RED ? PLAYERS.BLUE : PLAYERS.RED;
+  getNextPlayerIndex(currentIndex) {
+    return (currentIndex + 1) % this.playerOrder.length;
   }
 
-  hasValidMove(board, player) {
-    const token = this.getTokenForPlayer(player);
+  hasValidMove(board, playerId) {
+    const token = this.getTokenForPlayer(playerId);
     for (let row = 0; row < this.boardSize; row++) {
       for (let col = 0; col < this.boardSize; col++) {
         if (this.rules.isValidMove(board, row, col, token)) {
@@ -62,10 +51,11 @@ class GameEngine {
     return false;
   }
 
-  checkGameOver(board, currentPlayer) {
-    const nextPlayer = this.getNextPlayer(currentPlayer);
-    const currentHasMoves = this.hasValidMove(board, currentPlayer);
-    const nextHasMoves = this.hasValidMove(board, nextPlayer);
+  checkGameOver(board, currentPlayerId) {
+    const nextIndex = this.getNextPlayerIndex(this.currentPlayerIndex);
+    const nextPlayerId = this.playerOrder[nextIndex];
+    const currentHasMoves = this.hasValidMove(board, currentPlayerId);
+    const nextHasMoves = this.hasValidMove(board, nextPlayerId);
 
     return {
       gameOver: !currentHasMoves && !nextHasMoves,
@@ -76,38 +66,52 @@ class GameEngine {
   makeMove(row, col) {
     if (this.gameOver) return false;
 
-    const token = this.getTokenForPlayer(this.currentPlayer);
+    const playerId = this.getCurrentPlayerId();
+    const token = this.getTokenForPlayer(playerId);
+
     if (this.board[row][col] !== TOKEN_TYPE.EMPTY) return false;
     if (!this.rules.isValidMove(this.board, row, col, token)) return false;
 
     const tilesFlipped = this.rules.flipTiles(this.board, row, col, token);
     this.board[row][col] = token;
 
-    const { redScore, blueScore } = this.rules.calculateNewScores(
-      this.redScore,
-      this.blueScore,
+    this.scores = this.rules.calculateNewScores(
+      this.scores,
       tilesFlipped,
-      this.currentPlayer
+      playerId,
+      this.playerOrder
     );
 
-    this.redScore = redScore;
-    this.blueScore = blueScore;
-
-    const { gameOver, skipTurn } = this.checkGameOver(this.board, this.currentPlayer);
+    const { gameOver, skipTurn } = this.checkGameOver(this.board, playerId);
 
     if (gameOver) {
       this.gameOver = true;
-      this.currentPlayer = null;
-      this.winner =
-        redScore > blueScore ? PLAYERS.RED :
-        blueScore > redScore ? PLAYERS.BLUE :
-        'Tie';
+      this.currentPlayerIndex = null;
+      const scoreEntries = Object.entries(this.scores);
+      scoreEntries.sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
+
+      const [topPlayer, topScore] = scoreEntries[0];
+      const [, secondScore] = scoreEntries[1];
+
+      this.winner = topScore === secondScore ? 'Tie' : topPlayer;
     } else if (!skipTurn) {
-      this.currentPlayer = this.getNextPlayer(this.currentPlayer);
+      this.currentPlayerIndex = this.getNextPlayerIndex(this.currentPlayerIndex);
     }
 
     return true;
   }
+
+  getState() {
+    return {
+      board: this.board.map(row => row.slice()),
+      currentPlayerId: this.getCurrentPlayerId(),
+      scores: this.scores,
+      players: this.players,
+      gameOver: this.gameOver,
+      winner: this.winner
+    };
+  }
 }
+
 
 export default GameEngine;

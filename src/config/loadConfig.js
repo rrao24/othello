@@ -3,6 +3,7 @@ export function loadConfig(configObject) {
     boardSize: configObject.boardSize,
     rules: configObject.rules,
     initialScore: configObject.initialScore,
-    startingPositions: configObject.startingPositions
+    startingPositions: configObject.startingPositions,
+    players: configObject.players
   };
 }

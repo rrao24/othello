@@ -1,19 +1,14 @@
 import React from 'react';
-import { TOKEN_TYPE } from '../globals/TokenTypes';
 
 class Token extends React.Component {
   render() {
-    let token;
+    const { tokenType, players } = this.props;
 
-    if (this.props.tokenType === TOKEN_TYPE.RED) {
-      token = <span>🔴</span>;
-    } else if (this.props.tokenType === TOKEN_TYPE.BLUE) {
-      token = <span>🔵</span>;
-    } else {
-      token = <span />;
-    }
+    const playerEntry = Object.entries(players).find(
+      ([, player]) => player.token === tokenType
+    );
 
-    return token;
+    return <span>{playerEntry ? playerEntry[1].symbol : ''}</span>;
   }
 }
 

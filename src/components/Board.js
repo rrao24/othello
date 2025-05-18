@@ -4,11 +4,6 @@ import GameEngine from '../engine/GameEngine';
 import classicConfig from '../config/classic';
 import { loadConfig } from '../config/loadConfig';
 
-export const PLAYERS = {
-  "RED": "RED",
-  "BLUE": "BLUE"
-};
-
 class Board extends React.Component {
   constructor(props) {
     super(props);
@@ -36,7 +31,7 @@ class Board extends React.Component {
   };
 
   render() {
-    const { board, currentPlayer, redScore, blueScore, gameOver, winner } = this.state.engineState;
+    const { board, currentPlayerId, scores, players, gameOver, winner } = this.state.engineState;
     const tiles = [];
 
     const board_size = board.length;
@@ -47,6 +42,7 @@ class Board extends React.Component {
           <Tile
             key={`${row}-${col}`}
             tokenType={board[row][col]}
+            players={players}
             onTileClick={() => this.handleTileClick(row, col)}
           />
         );
@@ -58,21 +54,23 @@ class Board extends React.Component {
         <div className="Grid">{tiles}</div>
 
         <div className="CurrentPlayer">
-          {gameOver ? 'Game Over' : `Current Player - ${currentPlayer}`}
+          {gameOver ? 'Game Over' : `Current Player - ${players[currentPlayerId].name}`}
         </div>
 
         <div className="Scoreboard">
-          <div className="Score">Red Score - {redScore}</div>
-          <div className="Score">Blue Score - {blueScore}</div>
+          {Object.entries(players).map(([id, { name }]) => (
+            <div className="Score" key={id}>
+              {name} Score - {scores[id]}
+            </div>
+          ))}
         </div>
 
         {gameOver && (
-          <div className="GameOver">
-            <h2>Game Over</h2>
-            <p>Final Score - Red: {redScore}, Blue: {blueScore}</p>
-            <h3>{winner === 'Tie' ? "It's a tie!" : `${winner} wins!`}</h3>
-            <button onClick={this.resetGame}>Restart</button>
-          </div>
+          <>
+            <h3>
+              {winner === 'Tie' ? "It's a tie!" : `${players[winner]?.name ?? winner} wins!`}
+            </h3>
+          </>
         )}
       </div>
     );
