@@ -11,7 +11,9 @@ class Board extends React.Component {
       board: this.createInitialBoard(),
       currentPlayer: PLAYERS.RED,
       redScore: INITIAL_SCORE,
-      blueScore: INITIAL_SCORE
+      blueScore: INITIAL_SCORE,
+      gameOver: false,
+      winner: null
     };
   }
 
@@ -135,7 +137,7 @@ class Board extends React.Component {
     // In order to update state
     const boardCopy = this.state.board.map(row => row.slice());
 
-    if (boardCopy[row][col] !== TOKEN_TYPE.EMPTY) {
+    if (this.state.gameOver || boardCopy[row][col] !== TOKEN_TYPE.EMPTY) {
       return;
     }
 
@@ -149,20 +151,38 @@ class Board extends React.Component {
 
       const { redScore, blueScore } = this.calculateNewScores(tilesFlipped, this.state.currentPlayer);
 
-      let updatedCurrentPlayer = nextPlayer;
+      let tentativeNextPlayer = nextPlayer;
 
       if (!this.hasValidMove(boardCopy, nextPlayer)) {
         if (this.hasValidMove(boardCopy, this.state.currentPlayer)) {
-          updatedCurrentPlayer = this.state.currentPlayer;
+          tentativeNextPlayer = this.state.currentPlayer;
           alert(`${nextPlayer} has no valid moves. Turn skipped.`);
         } else {
-          alert("No valid moves for either player. Game over!");
+          // Utilized AI Tools to help write code to determine a winner
+          // And display a message
+          const winner =
+            redScore > blueScore
+              ? PLAYERS.RED
+              : blueScore > redScore
+              ? PLAYERS.BLUE
+              : 'Tie';
+
+          this.setState({
+            board: boardCopy,
+            currentPlayer: null,
+            redScore,
+            blueScore,
+            gameOver: true,
+            winner
+          });
+
+          return;
         }
       }
 
       this.setState({
         board: boardCopy,
-        currentPlayer: nextPlayer,
+        currentPlayer: tentativeNextPlayer,
         redScore: redScore,
         blueScore: blueScore
       });
@@ -193,6 +213,17 @@ class Board extends React.Component {
           <div className="Score">Red Score - {this.state.redScore}</div>
           <div className="Score">Blue Score - {this.state.blueScore}</div>
         </div>
+        {this.state.gameOver && (
+          <div className="GameOver">
+            <h2>Game Over</h2>
+            <p>Final Score - Red: {this.state.redScore}, Blue: {this.state.blueScore}</p>
+            <h3>
+              {this.state.winner === 'Tie'
+                ? "It's a tie!"
+                : `${this.state.winner} wins!`}
+            </h3>
+          </div>
+        )}
       </div>
     );
   }
