@@ -28,10 +28,10 @@ class Board extends React.Component {
       board.push(gameRow);
     }
 
-    board[3][3] = TOKEN_TYPE.RED;
-    board[3][4] = TOKEN_TYPE.BLUE;
-    board[4][3] = TOKEN_TYPE.BLUE;
-    board[4][4] = TOKEN_TYPE.RED;
+    board[(this.boardSize/2) - 1][(this.boardSize/2) - 1] = TOKEN_TYPE.RED;
+    board[(this.boardSize/2) - 1][this.boardSize/2] = TOKEN_TYPE.BLUE;
+    board[this.boardSize/2][(this.boardSize/2) - 1] = TOKEN_TYPE.BLUE;
+    board[this.boardSize/2][this.boardSize/2] = TOKEN_TYPE.RED;
 
     return board;
   }
