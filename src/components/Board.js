@@ -11,34 +11,13 @@ class Board extends React.Component {
     this.engine = new GameEngine(this.boardSize);
 
     this.state = {
-      board: this.createInitialBoard(),
+      board: this.engine.getInitialBoard(),
       currentPlayer: PLAYERS.RED,
       redScore: INITIAL_SCORE,
       blueScore: INITIAL_SCORE,
       gameOver: false,
       winner: null
     };
-  }
-
-  createInitialBoard = () => {
-    let board = [];
-
-    for (let row = 0; row < this.boardSize; row++) {
-      let gameRow = [];
-
-      for (let col = 0; col < this.boardSize; col++) {
-        gameRow.push(TOKEN_TYPE.EMPTY);
-      }
-
-      board.push(gameRow);
-    }
-
-    board[(this.boardSize/2) - 1][(this.boardSize/2) - 1] = TOKEN_TYPE.RED;
-    board[(this.boardSize/2) - 1][this.boardSize/2] = TOKEN_TYPE.BLUE;
-    board[this.boardSize/2][(this.boardSize/2) - 1] = TOKEN_TYPE.BLUE;
-    board[this.boardSize/2][this.boardSize/2] = TOKEN_TYPE.RED;
-
-    return board;
   }
 
   handleTileClick = (row, col) => {
