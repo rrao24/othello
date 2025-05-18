@@ -1,5 +1,5 @@
 import React from 'react';
-import { BOARD_SIZE, TOKEN_TYPE, PLAYERS, INITIAL_SCORE } from '../globals/constants';
+import { BOARD_SIZE, TOKEN_TYPE, PLAYERS, INITIAL_SCORE, DIRECTIONS } from '../globals/constants';
 import Tile from './Tile';
 
 class Board extends React.Component {
@@ -36,16 +36,18 @@ class Board extends React.Component {
     return board;
   }
 
+  getTokenForPlayer = (player) => {
+    return player === PLAYERS.RED ? TOKEN_TYPE.RED : TOKEN_TYPE.BLUE;
+  };
+
+  getNextPlayer = (currentPlayer) => {
+    return currentPlayer === PLAYERS.RED ? PLAYERS.BLUE : PLAYERS.RED;
+  };
+
   // Utilized AI Tools to help write code to determine when to skip a turn
   // And to determine when the game is over (when neither player has valid moves)
   hasValidMove = (board, player) => {
-    let token;
-    if (player === PLAYERS.RED) {
-      token = TOKEN_TYPE.RED;
-    } else {
-      token = TOKEN_TYPE.BLUE;
-    }
-
+    const token = this.getTokenForPlayer(player);
     for (let row = 0; row < this.boardSize; row++) {
       for (let col = 0; col < this.boardSize; col++) {
         if (board[row][col] === TOKEN_TYPE.EMPTY && this.isValidMove(board, row, col, token)) {
@@ -57,44 +59,76 @@ class Board extends React.Component {
     return false;
   }
 
-  isValidMove = (board, row, col, token) => {
-    let opponent;
-    if (token === TOKEN_TYPE.RED) {
-      opponent = TOKEN_TYPE.BLUE;
-    } else {
-      opponent = TOKEN_TYPE.RED;
+  getFlippablePath = (board, row, col, dx, dy, token) => {
+    const opponent = token === TOKEN_TYPE.RED ? TOKEN_TYPE.BLUE : TOKEN_TYPE.RED;
+    const path = [];
+    let r = row + dx;
+    let c = col + dy;
+
+    while (
+      r >= 0 && c >= 0 &&
+      r < this.boardSize && c < this.boardSize
+    ) {
+      const current = board[r][c];
+
+      if (current === opponent) {
+        path.push([r, c]);
+      } else if (current === token && path.length > 0) {
+        return path;
+      } else {
+        break;
+      }
+
+      r += dx;
+      c += dy;
     }
 
-    const directions = [
-      [-1, -1], [-1, 0], [-1, 1],
-      [0, -1],         [0, 1],
-      [1, -1], [1, 0], [1, 1]
-    ];
+    return [];
+  };
 
-    for (const [dx, dy] of directions) {
-      let r = row + dx;
-      let c = col + dy;
-      let foundOpponent = false;
+  isValidMove = (board, row, col, token) => {
+    if (board[row][col] !== TOKEN_TYPE.EMPTY) {
+      return false;
+    }
 
-      while (
-        r >= 0 && c >= 0 &&
-        r < this.boardSize && c < this.boardSize
-      ) {
-        if (board[r][c] === opponent) {
-          foundOpponent = true;
-        } else if (board[r][c] === token && foundOpponent) {
-          return true; // Valid move
-        } else {
-          break;
-        }
-
-        r += dx;
-        c += dy;
+    for (const [dx, dy] of DIRECTIONS) {
+      const path = this.getFlippablePath(board, row, col, dx, dy, token);
+      if (path.length > 0) {
+        return true;
       }
     }
 
     return false;
-  }
+  };
+
+  flipTiles = (board, row, col, token) => {
+    let tilesFlipped = 0;
+
+    for (const [dx, dy] of DIRECTIONS) {
+      const path = this.getFlippablePath(board, row, col, dx, dy, token);
+
+      for (const [r, c] of path) {
+        board[r][c] = token;
+        tilesFlipped++;
+      }
+    }
+
+    return tilesFlipped;
+  };
+
+  calculateNewScores = (tilesFlipped, player) => {
+    if (player === PLAYERS.RED) {
+      return {
+        redScore: this.state.redScore + tilesFlipped + 1,
+        blueScore: this.state.blueScore - tilesFlipped
+      };
+    } else {
+      return {
+        blueScore: this.state.blueScore + tilesFlipped + 1,
+        redScore: this.state.redScore - tilesFlipped
+      };
+    }
+  };
 
   handleTileClick = (row, col) => {
     // Utilized AI Tools to understand that React requires to use copies of objects
@@ -105,80 +139,15 @@ class Board extends React.Component {
       return;
     }
 
-    let token;
-    let nextPlayer;
+    const token = this.getTokenForPlayer(this.state.currentPlayer);
+    const nextPlayer = this.getNextPlayer(this.state.currentPlayer);
 
-    if (this.state.currentPlayer === PLAYERS.RED) {
-      token = TOKEN_TYPE.RED;
-      nextPlayer = PLAYERS.BLUE;
-    } else {
-      token = TOKEN_TYPE.BLUE;
-      nextPlayer = PLAYERS.RED;
-    }
+    let tilesFlipped = this.flipTiles(boardCopy, row, col, token);
 
-    let isMoveValid = false;
-    let tilesFlipped = 0;
-
-    let directions = [
-      [-1, -1],
-      [-1, 0],
-      [-1, 1],
-      [0, -1],
-      [0, 1],
-      [1, -1],
-      [1, 0],
-      [1, 1]
-    ];
-
-    for (let direction of directions) {
-      // Utilized AI Tools to find a bug in the code which was causing illegal moves to be placed
-      // Needed to ensure that a "friendly" tile was at the end of the line of tiles being flipped
-      let currentRow = row + direction[0];
-      let currentCol = col + direction[1];
-      const path = [];
-
-      while (
-        currentRow >= 0 &&
-        currentCol >= 0 &&
-        currentRow < this.boardSize &&
-        currentCol < this.boardSize &&
-        boardCopy[currentRow][currentCol] !== TOKEN_TYPE.EMPTY &&
-        boardCopy[currentRow][currentCol] !== token
-      ) {
-        path.push([currentRow, currentCol]);
-        currentRow += direction[0];
-        currentCol += direction[1];
-      }
-
-      if (
-        currentRow >= 0 &&
-        currentCol >= 0 &&
-        currentRow < this.boardSize &&
-        currentCol < this.boardSize &&
-        boardCopy[currentRow][currentCol] === token &&
-        path.length > 0
-      ) {
-        for (const [r, c] of path) {
-          boardCopy[r][c] = token;
-          tilesFlipped++;
-        }
-        isMoveValid = true;
-      }
-    }
-
-    if (isMoveValid) {
+    if (tilesFlipped > 0) {
       boardCopy[row][col] = token;
 
-      let redScore;
-      let blueScore;
-
-      if (this.state.currentPlayer === PLAYERS.RED) {
-        redScore = this.state.redScore + tilesFlipped + 1;
-        blueScore = this.state.blueScore - tilesFlipped;
-      } else {
-        blueScore = this.state.blueScore + tilesFlipped + 1;
-        redScore = this.state.redScore - tilesFlipped;
-      }
+      const { redScore, blueScore } = this.calculateNewScores(tilesFlipped, this.state.currentPlayer);
 
       let updatedCurrentPlayer = nextPlayer;
 

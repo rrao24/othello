@@ -13,3 +13,9 @@ export const PLAYERS = {
 
 export const INITIAL_SCORE = 2;
 
+export const DIRECTIONS = [
+  [-1, -1], [-1, 0], [-1, 1],
+  [0, -1],         [0, 1],
+  [1, -1], [1, 0], [1, 1]
+];
+
