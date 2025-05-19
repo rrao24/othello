@@ -50,6 +50,7 @@ class Board extends React.Component {
       }
     }
 
+    // Utilized AI Tools to help render logic when game has ended
     return (
       <div className="Board">
         <div className="Grid">{tiles}</div>
