@@ -1,6 +1,6 @@
 # Othello
 
-Simple implementation of Othello using React. Deployed to AWS S3/CloudFront using Terraform. URL to deployed website: [http://dx0j8altb3d3v.cloudfront.net](here).
+Simple implementation of Othello using React. Deployed to AWS S3/CloudFront using Terraform. URL to deployed website: [here](http://dx0j8altb3d3v.cloudfront.net).
 
 ## Run Locally
 
